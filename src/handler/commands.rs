@@ -13,20 +13,10 @@ pub async fn get_apex_stats (player_name: &String, channel: &ChannelId, http_cli
     }
     // If the request succeeded, print the result.
     else {
-        // If the response is too big to send in a single message,
-        // split the message int multiple smaller parts.
-        // Otherwise, send the message.
         let response_body: String = response.unwrap();
-        if response_body.len() > 1500 {
-            for string in response::split_response(&response_body) {
-                if let Err(err) = channel.say(&ctx.http, string).await {
-                    println!("failed to send message: {err}");
-                }
-            }
-        } else {
-            if let Err(err) = channel.say(&ctx.http, response_body).await {
-                println!("failed to send message: {err}");
-            }
+        let parsed_response = response::parse_json(response_body).expect("failed to parse response");
+        if let Err(err) = channel.say(&ctx.http, parsed_response).await {
+            println!("failed to send message: {err}");
         }
     }
 }
