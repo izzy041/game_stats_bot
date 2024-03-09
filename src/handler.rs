@@ -20,7 +20,7 @@ impl EventHandler for Handler {
         if msg.content == format!("{prefix}ping").to_string() {
             commands::ping(&msg.channel_id, &ctx).await;
 
-        } else if msg.content[0..10] == format!("{prefix}statsapex").to_string() {
+        } else if msg.content.chars().count() > 10 && msg.content[0..10] == format!("{prefix}statsapex").to_string() {
             let player: &String = &msg.content[11..].to_string();
             commands::get_apex_stats(player, &msg.channel_id, &http_client, &ctx).await;
         }
