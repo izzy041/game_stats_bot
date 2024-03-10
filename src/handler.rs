@@ -22,7 +22,9 @@ impl EventHandler for Handler {
 
         } else if msg.content.chars().count() > 10 && msg.content[0..10] == format!("{prefix}statsapex").to_string() {
             let player: &String = &msg.content[11..].to_string();
-            commands::get_apex_stats(player, &msg.channel_id, &http_client, &ctx).await;
+            commands::get_apex_stats(player, &msg.channel_id, &http_client, &ctx, msg.author).await;
+        } else if msg.content == format!("{prefix}test") {
+            commands::test(&msg.channel_id, &ctx).await;
         }
     }
 

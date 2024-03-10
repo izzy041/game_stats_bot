@@ -1,5 +1,8 @@
 use serde_json::Value;
 use std::env;
+use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateMessage, User};
+use serenity::builder::CreateEmbedFooter;
+use serenity::model::Timestamp;
 
 // Makes a GET request to the games API.
 // Returns a Result containing the response body as the Ok value
@@ -20,6 +23,7 @@ pub struct PlayerStats {
     pub name: String,
     pub level: i64,
     pub rank: String,
+    pub rank_image: String,
     pub global_ladder_position: String,
     pub platform: String,
     pub platform_ladder_position: String,
@@ -29,32 +33,40 @@ pub struct PlayerStats {
 }
 
 impl PlayerStats {
-    // Function to get the stats as a formatted string.
-    pub fn as_string(&self) -> String {
+    // Function to get the stats as a CreateMessage type.
+    pub fn as_message(&self, requester: &User) -> CreateMessage {
+        // The embed used if the player was found.
+        let success_embed = CreateEmbed::new()
+            .title(&self.name)
+            .fields(vec![
+                ("Level", &self.level.to_string(), false),
+                ("Rank", &self.rank, false),
+                ("Global Ladder Position", &self.global_ladder_position, false),
+                (format!("{} ladder position", &self.platform).as_str(), &self.platform_ladder_position, false),
+                ("Career Kills", &self.career_kills.to_string(), false),
+                ("Career Wins", &self.career_wins.to_string(), false),
+                ("Career Revives", &self.career_revives.to_string(), false),
+            ])
+            .author(CreateEmbedAuthor::new(format!("@{}", &requester.name)))
+            .color(Colour::TEAL)
+            .footer(CreateEmbedFooter::new(format!("Apex legends statistics for player \"{}\", requested by {}.", self.name, requester.name)))
+            .timestamp(Timestamp::now())
+            .thumbnail(&self.rank_image);
+
+        // The embed used if the player was not found.
+        // Contains an error message.
+        let fail_embed = CreateEmbed::new()
+            .title("Error getting Apex Legends Statistics")
+            .description("Player was not found")
+            .footer(CreateEmbedFooter::new(format!("Apex legends statistics requested by {}.", &requester.name)))
+            .timestamp(Timestamp::now())
+            .color(Colour::RED);
+
         // If the level is 0 then the player was not found,
-        // otherwise, the formatted string is returned.
+        // otherwise, the message is returned.
         match self.level {
-            0 => "Player not found".to_string(),
-            _ => format!(
-                "Name: {}\n\
-        Level: {}\n\
-        Rank: {}\n\
-        Global ladder position: {}\n\
-        {} ladder position : {}\n\
-        Career Kills : {}\n\
-        Career Wins: {}\n\
-        Career Revives: {}
-        ",
-                self.name,
-                self.level,
-                self.rank,
-                self.global_ladder_position,
-                self.platform,
-                self.platform_ladder_position,
-                self.career_kills,
-                self.career_wins,
-                self.career_revives
-            ),
+            0 => CreateMessage::new().embed(fail_embed),
+            _ => CreateMessage::new().embed(success_embed),
         }
     }
 }
@@ -92,6 +104,7 @@ pub fn parse_json(json: &str) -> Result<PlayerStats, serde_json::Error> {
         ranked["rankDiv"],
         ranked["rankScore"]
     );
+    let rank_image: String = ranked["rankImg"].to_string().replace("\"", "");
 
     let ladder_global: String = {
         let top_bottom: String = {
@@ -130,6 +143,7 @@ pub fn parse_json(json: &str) -> Result<PlayerStats, serde_json::Error> {
         career_kills,
         career_wins,
         career_revives,
+        rank_image
     };
 
     Ok(stats)
