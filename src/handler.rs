@@ -38,7 +38,7 @@ impl EventHandler for Handler {
             } else {
                 // Get the player name and platform from the arguments provided.
                 let player: &str = &args.get(1).unwrap_or(&"");
-                let mut platform: &str = &args.get(2).unwrap_or(&"");
+                let mut platform: &str = &args.get(2).unwrap_or(&"").to_uppercase();
                 let plats: Vec<&str> = vec!["PC", "XBOX", "PLAYSTATION"];
 
                 // Check if a valid platform was provided.
