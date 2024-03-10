@@ -1,10 +1,10 @@
 use reqwest::Client;
-use serenity::all::{ChannelId, Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, Timestamp, User};
+use serenity::all::{ChannelId, User};
 use serenity::prelude::Context;
 use crate::handler::response;
 
-pub async fn get_apex_stats (player_name: &String, channel: &ChannelId, http_client: &Client, ctx: &Context, requester: User) {
-    let response = response::get_response(&http_client, player_name).await;
+pub async fn get_apex_stats (player_name: &String, channel: &ChannelId, http_client: &Client, ctx: &Context, requester: User, platform: &String) {
+    let response = response::get_response(&http_client, &player_name, &platform).await;
 
     // If the request failed, print the error.
     if let Err(err) = response {
@@ -33,30 +33,5 @@ pub async fn ping(channel: &ChannelId, ctx: &Context) {
     // Check if sending the message failed and print the reason.
     if let Err(err) = channel.say(&ctx.http, "pong").await {
         println!("could not send message: {err}")
-    }
-}
-
-pub async fn test(channel: &ChannelId, ctx: &Context) {
-    println!("message received");
-    let footer = CreateEmbedFooter::new("test footer");
-    let embed = CreateEmbed::new()
-        .title("title")
-        .description("description")
-        .field("field", "field value", false)
-        .fields(vec![
-            ("first inline field", "field body", true),
-            ("second inline field", "field body", true),
-        ])
-        .footer(footer)
-        .timestamp(Timestamp::now())
-        .author(CreateEmbedAuthor::new("izzy's bot"))
-        .color(Colour::DARK_PURPLE);
-
-    let builder = CreateMessage::new()
-        .content("message content")
-        .embed(embed);
-    let msg = channel.send_message(&ctx.http, builder).await;
-    if let Err(err) = msg {
-        println!("error sending message {err:?}");
     }
 }
