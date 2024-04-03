@@ -13,10 +13,13 @@ async fn main() {
     let intents: GatewayIntents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
+    // Instantiate event handler
+    let event_handler: handler::Handler = handler::Handler { client: reqwest::Client::new() };
+
     // Try to create a client instance,
     // print the error if it fails.
     let mut client: Client = Client::builder(&token, intents)
-        .event_handler(handler::Handler)
+        .event_handler(event_handler)
         .await
         .expect("could not create client");
 

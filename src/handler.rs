@@ -6,16 +6,14 @@ mod response;
 mod commands;
 
 // The event handler.
-pub struct Handler;
+pub struct Handler {
+    pub client: reqwest::Client,
+}
 #[async_trait]
 impl EventHandler for Handler {
     // Create a handler for the 'message' event - the function is called when a message is received
     async fn message(&self, ctx: Context, msg: Message) {
         let prefix: &str = "!";
-
-        // Reuse the same client instead of creating a new one
-        // every time a request is made.
-        let http_client: reqwest::Client = reqwest::Client::new();
 
         if msg.content == format!("{prefix}ping").to_string() {
             commands::ping(&msg.channel_id, &ctx).await;
@@ -53,7 +51,7 @@ impl EventHandler for Handler {
                     };
 
                     // Get the player stats.
-                    commands::get_apex_stats(&player.to_string(), &msg.channel_id, &http_client, &ctx, msg.author, &platform.to_string().to_uppercase()).await;
+                    commands::get_apex_stats(&player.to_string(), &msg.channel_id, &self.client, &ctx, msg.author, &platform.to_string().to_uppercase()).await;
                 } else {
                     // If a valid platform was not provided, show the proper
                     // command usage.
